@@ -126,14 +126,25 @@ public class MTCoreTE extends TileEntity implements LeafiaPacketReceiver, ITicka
 	public static final List<FluidType> steamTypes = new ArrayList<>();
 	public static FluidType getNextSteam(FluidType type,boolean decompress) {
 		int index = steamTypes.indexOf(type);
-		if (index == -1) return null;
 		if (decompress) {
+			if (index == -1) {
+				FT_Coolable expansion = getSteamExpansion(type);
+				return expansion != null ? expansion.coolsTo : null;
+			}
 			if (index+1 < steamTypes.size())
 				return steamTypes.get(index+1);
 			else
 				return null;
 		} else
 			return type;
+	}
+	public static boolean isTurbineFluid(FluidType type) {
+		if (type == null)
+			return false;
+		if (steamTypes.contains(type))
+			return true;
+		FT_Coolable expansion = getSteamExpansion(type);
+		return expansion != null && expansion.getEfficiency(FT_Coolable.CoolingType.TURBINE) > 0;
 	}
 	public static FT_Coolable getSteamExpansion(FluidType type) {
 		if (type.hasTrait(FT_Coolable.class))
@@ -145,7 +156,7 @@ public class MTCoreTE extends TileEntity implements LeafiaPacketReceiver, ITicka
 			return 1;
 		FT_Coolable expansion = getSteamExpansion(type);
 		if (expansion == null)
-			return 0;
+			return 1;
 		return getSteamMassEquivalent(expansion.coolsTo)*expansion.amountProduced/(double)expansion.amountReq;
 	}
 	public static double getTurbineStepWork(FluidType type) {
@@ -1274,11 +1285,11 @@ public class MTCoreTE extends TileEntity implements LeafiaPacketReceiver, ITicka
 										}
 										int steamIndex = steamTypes.indexOf(port.identifier);
 										int nextSteamIndex = steamTypes.indexOf(nextSteam);
-										if (steamIndex == -1)
+										if (!isTurbineFluid(port.identifier))
 											return new ReturnCodeError(prevPos,offs,AssemblyErrorReason.INVALID_IDENTIFIER);
-										if (mostCompression == -1 || nextSteamIndex < mostCompression)
+										if (nextSteamIndex != -1 && (mostCompression == -1 || nextSteamIndex < mostCompression))
 											mostCompression = nextSteamIndex;
-										if (leastCompression == -1 || steamIndex > leastCompression)
+										if (steamIndex != -1 && (leastCompression == -1 || steamIndex > leastCompression))
 											leastCompression = steamIndex;
 									}
 								}
@@ -1337,6 +1348,8 @@ public class MTCoreTE extends TileEntity implements LeafiaPacketReceiver, ITicka
 		// mostCompression IS A SMALLER VALUE BECAUSE THE LOWER THE INDEX IS, THE MORE COMPRESSED THE STEAM IS
 		int index = steamTypes.indexOf(fluid);
 		mostCompression = 0; // ah forget it
+		if (index == -1)
+			index = mostCompression;
 		int delta = index-mostCompression;
 		double buffer = Math.pow(10,delta)/Math.pow(4,delta)*blades*Math.pow(8,(size-1)/2d)*(4500d/steamTypes.get(mostCompression).temperature)*BUFFER_CAPACITY_MULTIPLIER;
 		if (fluid.equals(Fluids.SPENTSTEAM))

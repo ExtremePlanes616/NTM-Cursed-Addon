@@ -260,7 +260,7 @@ public abstract class ModularTurbineBlockBase extends AddonBlockDummyable implem
 				ItemStack stack = player.getHeldItem(hand);
 				if (stack.getItem() instanceof IItemFluidIdentifier identifier) {
 					FluidType type = identifier.getType(world,core.getX(),core.getY(),core.getZ(),stack);
-					if (MTCoreTE.steamTypes.contains(type)) {
+					if (MTCoreTE.isTurbineFluid(type)) {
 						if (port.identifier == null || !port.identifier.equals(type)) {
 							if (!world.isRemote) {
 								port.identifier = type;
