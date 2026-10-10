@@ -29,21 +29,24 @@ jobs:
       - name: Gradle Decomp Workspace Setup
         run: ./gradlew setupDecompWorkspace
       
+      # We pipe the build output to a text log file so if it fails, you can upload the raw error log!
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build > build_output.log 2>&1
         env:
           ORG_GRADLE_PROJECT_org_gradle_jvmargs: -Xmx3G
       
-      - name: Upload problems report to GitHub Releases
-        if: startsWith(github.ref, 'refs/tags/') && hashFiles('build/reports/problems/problems-report.html') != ''
+      # If the build step fails, this step will trigger and upload the raw terminal compile errors
+      - name: Upload Compile Error Log on Failure
+        if: failure() && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
-          files: build/reports/problems/problems-report.html
+          files: build_output.log
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Standard successful artifact upload step
       - name: Upload addon JAR to GitHub Releases
-        if: startsWith(github.ref, 'refs/tags/') && hashFiles('build/reports/problems/problems-report.html') == ''
+        if: success() && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v1
         with:
           files: build/libs/NTM_Cursed_Edition-CE_Addon.jar
