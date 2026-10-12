@@ -1,6 +1,5 @@
 package com.leafia.settings;
 
-import com.hbm.config.BombConfig;
 import com.hbm.config.GeneralConfig;
 import com.hbm.config.MachineConfig;
 import com.leafia.contents.control.fuel.nuclearfuel.LeafiaRodItem;
@@ -53,8 +52,6 @@ public class AddonConfig {
         ConfigOverrides.blockReplacement = builder._boolean("ovr_enableBlockReplacement", true);
         builder._comment("1.7 behavior sucks");
         ConfigOverrides.holdDoorRedstone = builder._boolean("ovr_holdDoorRedstone", true);
-        builder._comment("Disable this if you love crashes");
-        ConfigOverrides.safeCommit = builder._boolean("ovr_safeCommit", true);
         builder._separator();
         builder._category("OVERWRITES AND REPLACEMENTS (GAMEPLAY)");
         builder._comment("Enable this if you would like the DFC to have the NTMain behavior");
@@ -116,12 +113,10 @@ public class AddonConfig {
 
     public static class ConfigOverrides {
         public static boolean blockReplacement = true;
-        public static boolean safeCommit = true;
         public static boolean holdDoorRedstone = true;
 
         public static void applyGeneralConfig() {
             GeneralConfig.enableBlockReplcement = blockReplacement;
-            BombConfig.safeCommit = safeCommit;
             MachineConfig.holdDoorRedstone = holdDoorRedstone;
         }
     }
